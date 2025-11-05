@@ -15,7 +15,7 @@ async def hello(request):
 def login(request, payload: LoginSchema):
     user = authenticate(username=payload.username, password=payload.password)
     if not user:
-        return api.create_response(request, {"error": "Invalid credentials"}, status=400)
+        return api.create_response(request, {"error": "Invalid credentials"}, status=401)
     refresh = RefreshToken.for_user(user)
     return {
         "access": str(refresh.access_token),

@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { fetchAuthSession, signOut } from "aws-amplify/auth";
+import { useRouter } from "next/navigation";
 import {
   FiPlus,
   FiSearch,
@@ -12,7 +14,12 @@ import {
 } from "react-icons/fi";
 
 export default function ChatPage() {
+  const router =useRouter();
   const [query, setQuery] = useState("");
+   const handleLogout = async () => {
+    await signOut();
+    router.push("/");
+  };
 
   return (
     <div className="min-h-screen bg-black text-white flex">
@@ -46,6 +53,12 @@ export default function ChatPage() {
             <span className="text-sm">lakshya agarwal</span>
           </div>
           <button className="text-xs bg-purple-600 px-2 py-1 rounded hover:bg-purple-700 transition">Upgrade</button>
+           <button
+          onClick={handleLogout}
+          className="text-xs bg-purple-600 px-2 py-1 rounded hover:bg-purple-700 transition"
+        >
+          Sign Out
+        </button>
         </div>
       </aside>
 

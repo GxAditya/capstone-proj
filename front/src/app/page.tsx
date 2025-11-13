@@ -1,300 +1,636 @@
-"use client";
-import React, { useState } from 'react';
-import { Moon, Sun, Menu, X, Search, Brain, FileText, TrendingUp, Shield, Zap, Globe } from 'lucide-react';
-import { useRouter } from "next/navigation";
-function pushtoSignUp()
-{
-  window.location.href = "/signup";
-}
-function pushtoSignIn()
-{
-  window.location.href = "/login";
-}
-export default function LandingPage() {
-  const [darkMode, setDarkMode] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+// "use client";
 
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
+// import { useState } from "react";
+// import { useRouter } from "next/navigation";
+// import { signUp, confirmSignUp } from "aws-amplify/auth";
+
+// export default function SignupPage() {
+//   const [email, setEmail] = useState("");
+//   const [password, setPassword] = useState("");
+//   const [code, setCode] = useState("");
+//   const [step, setStep] = useState<"signup" | "confirm">("signup");
+//   const [showForm, setShowForm] = useState(false);
+//   const [loading, setLoading] = useState(false);
+//   const router = useRouter();
+
+//   const handleSignup = async () => {
+//     try {
+//       setLoading(true);
+//       await signUp({
+//         username: email,
+//         password,
+//         options: { userAttributes: { email } },
+//       });
+//       setStep("confirm");
+//     } catch (err: any) {
+//       alert(err.message || "Error signing up");
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   const handleConfirm = async () => {
+//     try {
+//       setLoading(true);
+//       await confirmSignUp({ username: email, confirmationCode: code });
+//       alert("✅ Signup confirmed! Redirecting to login...");
+//       setTimeout(() => router.push("/login"), 1500);
+//     } catch (err: any) {
+//       alert(err.message || "Error confirming signup");
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   return (
+//     <div
+//       className="min-h-screen bg-cover bg-center text-white px-4 relative"
+//       style={{ backgroundImage: "url('/background-image.jpg')" }}
+//     >
+//       {/* Left-aligned container */}
+//       <div className="absolute top-1/2 left-10 transform -translate-y-1/2 flex gap-6 items-start">
+//         {/* Trigger Button */}
+//         {!showForm && (
+//           <button
+//             onClick={() => setShowForm(true)}
+//             className="px-8 py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-[#0a0f2c] via-[#102a5c] to-[#1a3b7c] 
+//                        shadow-lg border border-white/10 backdrop-blur-md transition-all duration-300 
+//                        hover:scale-105 hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(26,59,124,0.6)] hover:brightness-110"
+//           >
+//             Sign Up
+//           </button>
+//         )}
+
+//         {/* Pop-Up Signup Form */}
+//         <div
+//           className={`transition-all duration-500 ease-out ${
+//             showForm ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"
+//           } w-full max-w-md`}
+//         >
+//           <div className="bg-gray-800/70 backdrop-blur-md p-8 rounded-xl shadow-2xl border border-gray-700 text-white transition-transform duration-300 hover:scale-105 hover:shadow-[0_0_25px_rgba(255,255,255,0.3)]">
+//             <h2 className="text-3xl font-bold text-center mb-6 tracking-wide">Create Account</h2>
+
+//             {step === "signup" && (
+//               <>
+//                 <input
+//                   type="email"
+//                   placeholder="Email"
+//                   className="w-full px-4 py-2 mb-4 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+//                   onChange={(e) => setEmail(e.target.value)}
+//                   value={email}
+//                 />
+//                 <input
+//                   type="password"
+//                   placeholder="Password"
+//                   className="w-full px-4 py-2 mb-4 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+//                   onChange={(e) => setPassword(e.target.value)}
+//                   value={password}
+//                 />
+//                 <button
+//                   onClick={handleSignup}
+//                   disabled={loading}
+//                   className={`w-full py-2 rounded-xl font-semibold text-white bg-gradient-to-r from-[#0a0f2c] via-[#102a5c] to-[#1a3b7c] 
+//                               shadow-lg border border-white/10 backdrop-blur-md transition-all duration-300 
+//                               ${loading ? "cursor-not-allowed opacity-60" : "hover:scale-105 hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(26,59,124,0.6)] hover:brightness-110"}`}
+//                 >
+//                   {loading ? "Signing Up..." : "Sign Up"}
+//                 </button>
+//               </>
+//             )}
+
+//             {step === "confirm" && (
+//               <>
+//                 <p className="text-sm mb-4 text-center">
+//                   Enter the verification code sent to your email.
+//                 </p>
+//                 <input
+//                   type="text"
+//                   placeholder="Verification Code"
+//                   className="w-full px-4 py-2 mb-4 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition"
+//                   onChange={(e) => setCode(e.target.value)}
+//                   value={code}
+//                 />
+//                 <button
+//                   onClick={handleConfirm}
+//                   disabled={loading}
+//                   className={`w-full py-2 rounded-xl font-semibold text-white bg-gradient-to-r from-green-900 via-green-700 to-green-600 
+//                               shadow-lg border border-white/10 backdrop-blur-md transition-all duration-300 
+//                               ${loading ? "cursor-not-allowed opacity-60" : "hover:scale-105 hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(0,255,0,0.4)] hover:brightness-110"}`}
+//                 >
+//                   {loading ? "Verifying..." : "Confirm Account"}
+//                 </button>
+//               </>
+//             )}
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
+
+"use client";
+
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Mail, Lock, Loader2, Sparkles, X, Shield, CheckCircle2, ArrowRight } from "lucide-react";
+import { signUp, confirmSignUp } from "aws-amplify/auth";
+import { useRouter } from "next/navigation";
+
+export default function SignupPage() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
+  const [step, setStep] = useState<"signup" | "confirm">("signup");
+  const [showForm, setShowForm] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [focusedInput, setFocusedInput] = useState("");
+
+  const handleSignup = async () => {
+    try {
+      setLoading(true);
+      await signUp({
+        username: email,
+        password,
+        options: { userAttributes: { email } },
+      });
+      setStep("confirm");
+    } catch (err: any) {
+      alert(err.message || "Error signing up");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const scrollToSection = (id: any) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-      setMobileMenuOpen(false);
+  const handleConfirm = async () => {
+    try {
+      setLoading(true);
+      await confirmSignUp({ username: email, confirmationCode: code });
+      alert("✅ Signup confirmed! Redirecting to login...");
+      setTimeout(() => router.push("/login"), 1500);
+    } catch (err: any) {
+      alert(err.message || "Error confirming signup");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !loading) {
+      if (step === "signup" && email && password) {
+        handleSignup();
+      } else if (step === "confirm" && code) {
+        handleConfirm();
+      }
     }
   };
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'}`}>
-      {/* Navbar */}
-      <nav className={`fixed w-full z-50 transition-all duration-300 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b backdrop-blur-sm bg-opacity-90`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            {/* Logo */}
-            <div className="flex items-center space-x-2">
-              <div className={`w-10 h-10 rounded-lg ${darkMode ? 'bg-blue-600' : 'bg-blue-500'} flex items-center justify-center`}>
-                <Brain className="w-6 h-6 text-white" />
-              </div>
-              <span className="text-xl font-bold">Synthera</span>
-            </div>
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-indigo-950 via-purple-950 to-slate-900">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <motion.div
+          className="absolute -top-1/2 -right-1/2 w-[1000px] h-[1000px] bg-purple-500/10 rounded-full blur-3xl"
+          animate={{
+            scale: [1, 1.3, 1],
+            opacity: [0.2, 0.4, 0.2],
+          }}
+          transition={{
+            duration: 10,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+        <motion.div
+          className="absolute -bottom-1/2 -left-1/2 w-[1000px] h-[1000px] bg-indigo-500/10 rounded-full blur-3xl"
+          animate={{
+            scale: [1.3, 1, 1.3],
+            opacity: [0.2, 0.4, 0.2],
+          }}
+          transition={{
+            duration: 10,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 2,
+          }}
+        />
+        <motion.div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-pink-500/5 rounded-full blur-3xl"
+          animate={{
+            scale: [1, 1.2, 1],
+            rotate: [0, 180, 360],
+          }}
+          transition={{
+            duration: 20,
+            repeat: Infinity,
+            ease: "linear",
+          }}
+        />
+      </div>
 
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-8">
-              <button onClick={() => scrollToSection('features')} className={`hover:text-blue-500 transition-colors`}>
-                Features
-              </button>
-              <button onClick={() => scrollToSection('testimonials')} className={`hover:text-blue-500 transition-colors`}>
-                Testimonials
-              </button>
-              <button onClick={() => scrollToSection('contact')} className={`hover:text-blue-500 transition-colors`}>
-                Contact Us
-              </button>
-              <button onClick={toggleDarkMode} className={`p-2 rounded-lg ${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'} transition-colors`}>
-                {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-              </button>
-              <button className={`px-4 py-2 rounded-lg ${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'} transition-colors`} onClick={pushtoSignIn}>
-                Sign In
-              </button>
-              <button className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors" onClick={pushtoSignUp}>
-                Sign Up
-              </button>
-            </div>
+      {/* Grid pattern overlay */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.02)_1px,transparent_1px)] bg-[size:100px_100px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,black,transparent)]" />
 
-            {/* Mobile menu button */}
-            <div className="md:hidden flex items-center space-x-2">
-              <button onClick={toggleDarkMode} className={`p-2 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
-                {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-              </button>
-              <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className={`p-2 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
-                {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-              </button>
+      {/* Floating particles */}
+      {[...Array(20)].map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute w-1 h-1 bg-white/20 rounded-full"
+          style={{
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+          }}
+          animate={{
+            y: [0, -100, 0],
+            opacity: [0, 1, 0],
+          }}
+          transition={{
+            duration: 3 + Math.random() * 2,
+            repeat: Infinity,
+            delay: Math.random() * 2,
+          }}
+        />
+      ))}
+
+      {/* Content */}
+      <div className="relative z-10 min-h-screen flex items-center px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-7xl mx-auto">
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-20">
+            
+            {/* Left side - Hero content */}
+            <motion.div
+              className="flex-1 text-center lg:text-left"
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+            >
+              <motion.div
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/20 mb-6"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <Sparkles className="w-4 h-4 text-purple-400" />
+                <span className="text-sm text-purple-300">Start your journey</span>
+              </motion.div>
+
+              <motion.h1
+                className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-6 bg-gradient-to-r from-white via-purple-100 to-pink-200 bg-clip-text text-transparent"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                Join Our
+                <br />
+                Community
+              </motion.h1>
+
+              <motion.p
+                className="text-lg sm:text-xl text-slate-400 mb-8 max-w-lg mx-auto lg:mx-0"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+              >
+                Create your account and unlock exclusive features designed to transform your experience.
+              </motion.p>
+
+              {/* Feature list */}
+              <motion.div
+                className="space-y-4 mb-8"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+              >
+                {[
+                  "Secure authentication",
+                  "Personalized dashboard",
+                  "24/7 support access",
+                ].map((feature, i) => (
+                  <motion.div
+                    key={i}
+                    className="flex items-center gap-3 text-slate-300"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.6 + i * 0.1 }}
+                  >
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
+                      <CheckCircle2 className="w-4 h-4 text-white" />
+                    </div>
+                    <span>{feature}</span>
+                  </motion.div>
+                ))}
+              </motion.div>
+
+              <AnimatePresence mode="wait">
+                {!showForm && (
+                  <motion.button
+                    onClick={() => setShowForm(true)}
+                    className="group relative inline-flex items-center gap-3 px-8 py-4 rounded-2xl font-semibold text-white bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 shadow-lg shadow-purple-500/25 transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/40 overflow-hidden"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ delay: 0.8 }}
+                    whileHover={{ scale: 1.05, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <motion.div
+                      className="absolute inset-0 bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400"
+                      animate={{
+                        x: ["-100%", "100%"],
+                      }}
+                      transition={{
+                        duration: 3,
+                        repeat: Infinity,
+                        ease: "linear",
+                      }}
+                      style={{ opacity: 0.3 }}
+                    />
+                    <span className="relative z-10">Create Account</span>
+                    <motion.span
+                      className="relative z-10"
+                      animate={{ x: [0, 5, 0] }}
+                      transition={{ duration: 1.5, repeat: Infinity }}
+                    >
+                      <ArrowRight className="w-5 h-5" />
+                    </motion.span>
+                  </motion.button>
+                )}
+              </AnimatePresence>
+            </motion.div>
+
+            {/* Right side - Signup form */}
+            <div className="flex-1 w-full max-w-md">
+              <AnimatePresence mode="wait">
+                {showForm && (
+                  <motion.div
+                    initial={{ opacity: 0, x: 50, scale: 0.9 }}
+                    animate={{ opacity: 1, x: 0, scale: 1 }}
+                    exit={{ opacity: 0, x: 50, scale: 0.9 }}
+                    transition={{ duration: 0.5, ease: "easeOut" }}
+                    className="relative"
+                  >
+                    {/* Glow effect */}
+                    <motion.div
+                      className="absolute -inset-1 bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 rounded-3xl blur-xl opacity-30"
+                      animate={{
+                        opacity: [0.3, 0.5, 0.3],
+                      }}
+                      transition={{
+                        duration: 3,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                      }}
+                    />
+
+                    {/* Form container */}
+                    <div className="relative bg-slate-900/80 backdrop-blur-xl p-8 sm:p-10 rounded-3xl border border-slate-800 shadow-2xl">
+                      {/* Close button */}
+                      <motion.button
+                        onClick={() => setShowForm(false)}
+                        className="absolute top-4 right-4 p-2 rounded-full bg-slate-800/50 hover:bg-slate-700/50 transition-colors"
+                        whileHover={{ scale: 1.1, rotate: 90 }}
+                        whileTap={{ scale: 0.9 }}
+                      >
+                        <X className="w-5 h-5 text-slate-400" />
+                      </motion.button>
+
+                      {/* Progress indicator */}
+                      <div className="flex items-center justify-center gap-2 mb-6">
+                        <motion.div
+                          className={`w-2 h-2 rounded-full ${
+                            step === "signup" ? "bg-purple-500" : "bg-green-500"
+                          }`}
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ delay: 0.2 }}
+                        />
+                        <div className={`w-16 h-0.5 ${step === "confirm" ? "bg-green-500" : "bg-slate-700"}`} />
+                        <motion.div
+                          className={`w-2 h-2 rounded-full ${
+                            step === "confirm" ? "bg-green-500" : "bg-slate-700"
+                          }`}
+                          animate={{
+                            scale: step === "confirm" ? [0.8, 1.2, 1] : 1,
+                          }}
+                          transition={{ duration: 0.5 }}
+                        />
+                      </div>
+
+                      <AnimatePresence mode="wait">
+                        {step === "signup" ? (
+                          <motion.div
+                            key="signup"
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: 20 }}
+                            transition={{ duration: 0.3 }}
+                          >
+                            <div className="flex items-center justify-center mb-6">
+                              <motion.div
+                                className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center"
+                                initial={{ scale: 0, rotate: -180 }}
+                                animate={{ scale: 1, rotate: 0 }}
+                                transition={{ delay: 0.3, type: "spring" }}
+                              >
+                                <Shield className="w-8 h-8 text-white" />
+                              </motion.div>
+                            </div>
+
+                            <h2 className="text-3xl font-bold mb-2 text-center bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
+                              Create Account
+                            </h2>
+                            <p className="text-slate-400 mb-8 text-center">
+                              Join thousands of users today
+                            </p>
+
+                            {/* Email input */}
+                            <div className="mb-5">
+                              <label className="block text-sm font-medium text-slate-300 mb-2">
+                                Email
+                              </label>
+                              <div className="relative group">
+                                <Mail className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors ${
+                                  focusedInput === "email" ? "text-purple-400" : "text-slate-500"
+                                }`} />
+                                <input
+                                  type="email"
+                                  placeholder="you@example.com"
+                                  className="w-full pl-12 pr-4 py-3 bg-slate-800/50 text-white rounded-xl border border-slate-700 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all placeholder:text-slate-500"
+                                  onChange={(e) => setEmail(e.target.value)}
+                                  onFocus={() => setFocusedInput("email")}
+                                  onBlur={() => setFocusedInput("")}
+                                  onKeyPress={handleKeyPress}
+                                  value={email}
+                                />
+                              </div>
+                            </div>
+
+                            {/* Password input */}
+                            <div className="mb-6">
+                              <label className="block text-sm font-medium text-slate-300 mb-2">
+                                Password
+                              </label>
+                              <div className="relative group">
+                                <Lock className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors ${
+                                  focusedInput === "password" ? "text-purple-400" : "text-slate-500"
+                                }`} />
+                                <input
+                                  type="password"
+                                  placeholder="••••••••"
+                                  className="w-full pl-12 pr-4 py-3 bg-slate-800/50 text-white rounded-xl border border-slate-700 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all placeholder:text-slate-500"
+                                  onChange={(e) => setPassword(e.target.value)}
+                                  onFocus={() => setFocusedInput("password")}
+                                  onBlur={() => setFocusedInput("")}
+                                  onKeyPress={handleKeyPress}
+                                  value={password}
+                                />
+                              </div>
+                              <p className="text-xs text-slate-500 mt-2">
+                                Must be at least 8 characters
+                              </p>
+                            </div>
+
+                            {/* Signup button */}
+                            <motion.button
+                              onClick={handleSignup}
+                              disabled={loading || !email || !password}
+                              className={`w-full py-4 rounded-xl font-semibold text-white transition-all duration-300 relative overflow-hidden ${
+                                loading || !email || !password
+                                  ? "bg-slate-700 cursor-not-allowed"
+                                  : "bg-gradient-to-r from-purple-600 to-pink-600 hover:shadow-lg hover:shadow-purple-500/30"
+                              }`}
+                              whileHover={!loading && email && password ? { scale: 1.02, y: -2 } : {}}
+                              whileTap={!loading && email && password ? { scale: 0.98 } : {}}
+                            >
+                              {loading && (
+                                <motion.div
+                                  className="absolute inset-0 bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400"
+                                  animate={{ x: ["-100%", "100%"] }}
+                                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                />
+                              )}
+                              <span className="relative z-10 flex items-center justify-center gap-2">
+                                {loading ? (
+                                  <>
+                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                    Creating account...
+                                  </>
+                                ) : (
+                                  "Create Account"
+                                )}
+                              </span>
+                            </motion.button>
+                          </motion.div>
+                        ) : (
+                          <motion.div
+                            key="confirm"
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: 20 }}
+                            transition={{ duration: 0.3 }}
+                          >
+                            <div className="flex items-center justify-center mb-6">
+                              <motion.div
+                                className="w-16 h-16 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center"
+                                initial={{ scale: 0, rotate: -180 }}
+                                animate={{ scale: 1, rotate: 0 }}
+                                transition={{ delay: 0.3, type: "spring" }}
+                              >
+                                <Mail className="w-8 h-8 text-white" />
+                              </motion.div>
+                            </div>
+
+                            <h2 className="text-3xl font-bold mb-2 text-center bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
+                              Verify Email
+                            </h2>
+                            <p className="text-slate-400 mb-2 text-center">
+                              We've sent a code to
+                            </p>
+                            <p className="text-purple-400 mb-6 text-center font-medium">
+                              {email}
+                            </p>
+
+                            {/* Code input */}
+                            <div className="mb-6">
+                              <label className="block text-sm font-medium text-slate-300 mb-2">
+                                Verification Code
+                              </label>
+                              <input
+                                type="text"
+                                placeholder="Enter 6-digit code"
+                                className="w-full px-4 py-3 bg-slate-800/50 text-white rounded-xl border border-slate-700 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 outline-none transition-all placeholder:text-slate-500 text-center text-2xl tracking-widest"
+                                onChange={(e) => setCode(e.target.value)}
+                                onKeyPress={handleKeyPress}
+                                value={code}
+                                maxLength={6}
+                              />
+                            </div>
+
+                            {/* Confirm button */}
+                            <motion.button
+                              onClick={handleConfirm}
+                              disabled={loading || !code}
+                              className={`w-full py-4 rounded-xl font-semibold text-white transition-all duration-300 relative overflow-hidden ${
+                                loading || !code
+                                  ? "bg-slate-700 cursor-not-allowed"
+                                  : "bg-gradient-to-r from-green-600 to-emerald-600 hover:shadow-lg hover:shadow-green-500/30"
+                              }`}
+                              whileHover={!loading && code ? { scale: 1.02, y: -2 } : {}}
+                              whileTap={!loading && code ? { scale: 0.98 } : {}}
+                            >
+                              {loading && (
+                                <motion.div
+                                  className="absolute inset-0 bg-gradient-to-r from-green-400 via-emerald-400 to-green-400"
+                                  animate={{ x: ["-100%", "100%"] }}
+                                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                />
+                              )}
+                              <span className="relative z-10 flex items-center justify-center gap-2">
+                                {loading ? (
+                                  <>
+                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                    Verifying...
+                                  </>
+                                ) : (
+                                  "Verify & Continue"
+                                )}
+                              </span>
+                            </motion.button>
+
+                            {/* Resend code */}
+                            <div className="mt-4 text-center">
+                              <button className="text-sm text-slate-400 hover:text-purple-400 transition-colors">
+                                Didn't receive the code? Resend
+                              </button>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+
+                      {/* Terms */}
+                      <motion.p
+                        className="text-xs text-slate-500 text-center mt-6"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.6 }}
+                      >
+                        By signing up, you agree to our{" "}
+                        <a href="#" className="text-purple-400 hover:underline">
+                          Terms
+                        </a>{" "}
+                        and{" "}
+                        <a href="#" className="text-purple-400 hover:underline">
+                          Privacy Policy
+                        </a>
+                      </motion.p>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         </div>
-
-        {/* Mobile menu */}
-        {mobileMenuOpen && (
-          <div className={`md:hidden ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-t`}>
-            <div className="px-4 py-4 space-y-3">
-              <button onClick={() => scrollToSection('features')} className="block w-full text-left py-2 hover:text-blue-500">
-                Features
-              </button>
-              <button onClick={() => scrollToSection('testimonials')} className="block w-full text-left py-2 hover:text-blue-500">
-                Testimonials
-              </button>
-              <button onClick={() => scrollToSection('contact')} className="block w-full text-left py-2 hover:text-blue-500">
-                Contact Us
-              </button>
-              <button className={`block w-full text-left px-4 py-2 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
-                Sign In
-              </button>
-              <button className="block w-full text-left px-4 py-2 bg-blue-500 text-white rounded-lg" onClick={pushtoSignUp}>
-                Sign Up
-              </button>
-            </div>
-          </div>
-        )}
-      </nav>
-
-      {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <div className={`inline-block px-4 py-2 rounded-full ${darkMode ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-700'} text-sm font-semibold mb-6`}>
-                Accelerating Pharmaceutical Innovation
-              </div>
-              <h1 className="text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-                Transform Drug Discovery with{' '}
-                <span className="text-blue-500">Agentic AI</span>
-              </h1>
-              <p className={`text-xl mb-8 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                Reduce research time from months to hours. Our AI-powered platform identifies repurposing opportunities, analyzes patents, and delivers actionable insights for value-added pharmaceutical products.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <button className="px-8 py-4 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold text-lg transition-colors">
-                  Get Started Free
-                </button>
-                <button className={`px-8 py-4 ${darkMode ? 'bg-gray-800 hover:bg-gray-700 border-gray-700' : 'bg-white hover:bg-gray-50 border-gray-300'} border-2 rounded-lg font-semibold text-lg transition-colors`}>
-                  Watch Demo
-                </button>
-              </div>
-            </div>
-            <div className={`relative ${darkMode ? 'bg-gray-800' : 'bg-gradient-to-br from-blue-50 to-indigo-100'} rounded-2xl p-8 shadow-2xl`}>
-              <div className="space-y-4">
-                <div className={`${darkMode ? 'bg-gray-700' : 'bg-white'} rounded-lg p-4 shadow-lg transform hover:scale-105 transition-transform`}>
-                  <div className="flex items-center space-x-3 mb-2">
-                    <Search className="w-6 h-6 text-blue-500" />
-                    <span className="font-semibold">Query: Find molecules for diabetes</span>
-                  </div>
-                  <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Master Agent delegating to worker agents...</div>
-                </div>
-                <div className={`${darkMode ? 'bg-gray-700' : 'bg-white'} rounded-lg p-4 shadow-lg transform hover:scale-105 transition-transform`}>
-                  <div className="flex items-center space-x-3 mb-2">
-                    <TrendingUp className="w-6 h-6 text-green-500" />
-                    <span className="font-semibold">Market Analysis Complete</span>
-                  </div>
-                  <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>IQVIA: $45B market, 8.2% CAGR</div>
-                </div>
-                <div className={`${darkMode ? 'bg-gray-700' : 'bg-white'} rounded-lg p-4 shadow-lg transform hover:scale-105 transition-transform`}>
-                  <div className="flex items-center space-x-3 mb-2">
-                    <FileText className="w-6 h-6 text-purple-500" />
-                    <span className="font-semibold">Report Generated</span>
-                  </div>
-                  <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>15 viable opportunities identified</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section id="features" className={`py-20 px-4 sm:px-6 lg:px-8 ${darkMode ? 'bg-gray-800' : 'bg-gray-50'}`}>
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">Intelligent Agent Ecosystem</h2>
-            <p className={`text-xl ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-              Specialized AI agents working together to accelerate your research
-            </p>
-          </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[
-              {
-                icon: <TrendingUp className="w-8 h-8" />,
-                title: 'IQVIA Insights Agent',
-                description: 'Real-time market analysis with sales trends, CAGR calculations, and competitive landscape mapping'
-              },
-              {
-                icon: <Shield className="w-8 h-8" />,
-                title: 'Patent Landscape Agent',
-                description: 'Comprehensive IP analysis from USPTO and global databases with FTO assessments and expiry timelines'
-              },
-              {
-                icon: <Search className="w-8 h-8" />,
-                title: 'Clinical Trials Agent',
-                description: 'Pipeline intelligence from ClinicalTrials.gov with phase distribution and sponsor insights'
-              },
-              {
-                icon: <Globe className="w-8 h-8" />,
-                title: 'Web Intelligence Agent',
-                description: 'Automated scanning of guidelines, publications, and patient forums with credible source verification'
-              },
-              {
-                icon: <Zap className="w-8 h-8" />,
-                title: 'EXIM Trends Agent',
-                description: 'Import-export analytics for APIs and formulations across global markets'
-              },
-              {
-                icon: <FileText className="w-8 h-8" />,
-                title: 'Report Generator Agent',
-                description: 'Professional PDF reports with charts, tables, and actionable recommendations'
-              }
-            ].map((feature, idx) => (
-              <div key={idx} className={`${darkMode ? 'bg-gray-700 hover:bg-gray-650' : 'bg-white hover:shadow-xl'} rounded-xl p-6 shadow-lg transition-all duration-300 hover:-translate-y-1`}>
-                <div className="text-blue-500 mb-4">{feature.icon}</div>
-                <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
-                <p className={darkMode ? 'text-gray-300' : 'text-gray-600'}>{feature.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials Section */}
-      <section id="testimonials" className="py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">Trusted by Industry Leaders</h2>
-            <p className={`text-xl ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-              See how pharmaceutical companies are transforming their R&D pipelines
-            </p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                quote: "Reduced our preliminary research time by 85%. What used to take 3 months now takes just 2 weeks.",
-                author: "Dr. Sarah Chen",
-                role: "VP of R&D, Global Pharma Inc."
-              },
-              {
-                quote: "The patent landscape analysis alone has saved us from costly FTO issues. Invaluable tool for strategic planning.",
-                author: "Michael Rodriguez",
-                role: "Chief Scientific Officer, BioTech Solutions"
-              },
-              {
-                quote: "We've identified 12 viable repurposing opportunities in our first quarter. ROI exceeded all expectations.",
-                author: "Dr. Priya Sharma",
-                role: "Head of Innovation, MedGen Pharmaceuticals"
-              }
-            ].map((testimonial, idx) => (
-              <div key={idx} className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-2 rounded-xl p-6 shadow-lg`}>
-                <div className="text-yellow-500 text-2xl mb-4">★★★★★</div>
-                <p className={`mb-6 italic ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>"{testimonial.quote}"</p>
-                <div>
-                  <div className="font-semibold">{testimonial.author}</div>
-                  <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>{testimonial.role}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Contact Section */}
-      <section id="contact" className={`py-20 px-4 sm:px-6 lg:px-8 ${darkMode ? 'bg-gray-800' : 'bg-gray-50'}`}>
-        <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-4">Get in Touch</h2>
-            <p className={`text-xl ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-              Ready to accelerate your pharmaceutical innovation?
-            </p>
-          </div>
-          <div className={`${darkMode ? 'bg-gray-700' : 'bg-white'} rounded-xl p-8 shadow-lg space-y-6`}>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-semibold mb-2">First Name</label>
-                <input type="text" className={`w-full px-4 py-3 rounded-lg ${darkMode ? 'bg-gray-600 border-gray-500' : 'bg-gray-50 border-gray-300'} border focus:ring-2 focus:ring-blue-500 outline-none transition-all`} />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold mb-2">Last Name</label>
-                <input type="text" className={`w-full px-4 py-3 rounded-lg ${darkMode ? 'bg-gray-600 border-gray-500' : 'bg-gray-50 border-gray-300'} border focus:ring-2 focus:ring-blue-500 outline-none transition-all`} />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-semibold mb-2">Email</label>
-              <input type="email" className={`w-full px-4 py-3 rounded-lg ${darkMode ? 'bg-gray-600 border-gray-500' : 'bg-gray-50 border-gray-300'} border focus:ring-2 focus:ring-blue-500 outline-none transition-all`} />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold mb-2">Company</label>
-              <input type="text" className={`w-full px-4 py-3 rounded-lg ${darkMode ? 'bg-gray-600 border-gray-500' : 'bg-gray-50 border-gray-300'} border focus:ring-2 focus:ring-blue-500 outline-none transition-all`} />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold mb-2">Message</label>
-              <textarea rows={4} className={`w-full px-4 py-3 rounded-lg ${darkMode ? 'bg-gray-600 border-gray-500' : 'bg-gray-50 border-gray-300'} border focus:ring-2 focus:ring-blue-500 outline-none transition-all`}></textarea>
-            </div>
-            <button type="button" className="w-full px-8 py-4 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold text-lg transition-colors">
-              Send Message
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className={`${darkMode ? 'bg-gray-900 border-gray-800' : 'bg-gray-900 text-white'} border-t py-12 px-4 sm:px-6 lg:px-8`}>
-        <div className="max-w-7xl mx-auto text-center">
-          <div className="flex items-center justify-center space-x-2 mb-4">
-            <div className="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center">
-              <Brain className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-xl font-bold text-white">Synthera</span>
-          </div>
-          <p className="text-gray-400 mb-4">Accelerating pharmaceutical innovation through intelligent AI agents</p>
-          <p className="text-gray-500 text-sm">© 2025 Synthera. All rights reserved.</p>
-        </div>
-      </footer>
+      </div>
     </div>
   );
 }

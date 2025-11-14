@@ -46,7 +46,7 @@ export default function ChatPage() {
 
         <div className="flex items-center bg-gray-800 rounded-full px-4 py-2 w-full max-w-xl">
           <input
-            type="text"
+            type="file"
             placeholder="Ask anything"
             className="bg-transparent flex-1 text-white placeholder-gray-400 outline-none"
             value={query}

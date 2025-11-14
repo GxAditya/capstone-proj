@@ -620,8 +620,10 @@ export default function SignupPage() {
                         </a>{" "}
                         and{" "}
                         <a href="#" className="text-purple-400 hover:underline">
-                          Privacy Policy
+                          Privacy Policy       
+                          
                         </a>
+                        <a href="/login" className="text-purple-400 hover:underline">Login</a>
                       </motion.p>
                     </div>
                   </motion.div>

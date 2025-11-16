@@ -5,6 +5,7 @@ import uuid, boto3
 import os
 from dotenv import load_dotenv
 from google.cloud import pubsub_v1
+from datetime import datetime
 api = NinjaAPI()
 load_dotenv()
 s3 = boto3.client(
@@ -41,7 +42,9 @@ def get_upload_url(request, payload: GetSignedUrl):
         "user_id": user_id,
         "file_key": key,
         "file_name": payload.file_name,
-        "content_type": payload.content_type
+        "content_type": payload.content_type, 
+        "correlation_id": str(uuid.uuid4()), 
+        "timestamp": datetime.utcnow().isoformat()
     }
     data = str(data).encode('utf-8')
     future = publisher.publish(topic_path, data)

@@ -8,7 +8,7 @@ app = FastAPI()
 @app.get("/hello")
 async def hello():
     return {"message": "Hello, World!"}
-
+app.state.mess = None
 def pubsub_listener():
   load_dotenv()
   credentials_path= os.getenv("GCP_CREDENTIALS_PATH")
@@ -16,6 +16,7 @@ def pubsub_listener():
   subscriber = pubsub_v1.SubscriberClient()
   subscription_path=os.getenv("SUBSCRIBER_PATH")
   def callback(message: pubsub_v1.subscriber.message.Message):
+        app.state.mess = message.data.decode('utf-8')
         print(f"Received: {message.data.decode('utf-8')}")
         message.ack()
   print(f"Pub/Sub: Listening on {subscription_path}...")
@@ -30,3 +31,7 @@ def launch_subscriber():
     thread = threading.Thread(target=pubsub_listener, daemon=True)
     thread.start()
     print("🎉 Pub/Sub listener running in background thread!")
+
+@app.get("/status")
+async def check():
+    return {"message": app.state.mess}

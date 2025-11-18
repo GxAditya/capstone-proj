@@ -5,6 +5,7 @@ from google.cloud import pubsub_v1
 import threading
 import json
 from concurrent.futures import TimeoutError
+from agents.agent import agent
 app = FastAPI()
 @app.get("/hello")
 async def hello():
@@ -36,4 +37,9 @@ def launch_subscriber():
 @app.get("/status")
 async def check():
     print("RAW:", repr(app.state.mess))
-    return {"message": app.state.mess}
+    payload = json.loads(app.state.mess)
+    print("File key: "+ payload["file_key"])
+    query = f"Summarize the following document: {payload['file_key']}"
+    result = agent(query)
+    text = result.message["content"][0]["text"]
+    return {"response": text}

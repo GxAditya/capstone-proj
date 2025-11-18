@@ -39,7 +39,23 @@ async def check():
     print("RAW:", repr(app.state.mess))
     payload = json.loads(app.state.mess)
     print("File key: "+ payload["file_key"])
-    query = f"Summarize the following document: {payload['file_key']}"
+    query = f""" 
+   You are a Legal Document Intelligence Agent.
+
+Goals:
+1. Extract and summarize the document using legal_mystic().
+2. If the document references any legal sections (like Section 65 IT Act, Section 8, Article 21, etc) use:
+   - fetch_india_act()
+   - fetch_india_section()
+   - fetch_constitution_article()
+   to retrieve factual text from IndiaCode.
+3. Provide a factual, concise legal context based on retrieved acts/articles.
+4. DO NOT provide legal advice. Only factual interpretation.
+5. Add red flags if the document has potential legal issues.
+6. Add at the end:
+   "Disclaimer: This is an automated analysis, not legal advice."
+   Do this based on the document: "{payload["file_key"]}"
+"""
     result = agent(query)
     text = result.message["content"][0]["text"]
     return {"response": text}

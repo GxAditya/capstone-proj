@@ -37,4 +37,25 @@ def legal_mystic(file_key: str):
         text += page.get_text()
     return text
 
-agent = Agent(model=model, tools=[legal_mystic])
+@tool
+def fetch_india_act(act_code: str):
+    """ Fetch full act text from India Code API"""
+    url = f"https://www.indiacode.nic.in/api/acts/{act_code}"
+    r = requests.get(url)
+    return r.json() if r.headers.get("content-type") == "application/json" else r.text
+
+@tool
+def fetch_india_section(act_code: str, section_number: str):
+    """Fetch specific section from an act."""
+    url = f"https://www.indiacode.nic.in/api/section/{act_code}/{section_number}"
+    r = requests.get(url)
+    return r.json() if r.headers.get("content-type") == "application/json" else r.text
+
+@tool
+def fetch_constitution_article(article_number: str):
+    """Fetch Constitution article."""
+    url = f"https://www.indiacode.nic.in/api/articles/A1950/{article_number}"
+    r = requests.get(url)
+    return r.json() if r.headers.get("content-type") == "application/json" else r.text
+
+agent = Agent(model=model, tools=[legal_mystic, fetch_india_act, fetch_india_section, fetch_constitution_article])

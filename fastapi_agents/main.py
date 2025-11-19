@@ -45,6 +45,10 @@ async def check(user = Depends(get_current_user), session: SessionDep= None):
     print("RAW:", repr(app.state.mess))
     payload = json.loads(app.state.mess)
     print("File key: "+ payload["file_key"])
+    existing_user = session.get(User, user["email"])
+    if not existing_user:
+        session.add(User(email=user["email"]))
+        session.commit()
     query = f""" 
    You are a Legal Document Intelligence Agent.
 

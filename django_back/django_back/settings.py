@@ -48,7 +48,6 @@ INSTALLED_APPS = [
     'backapp',
 ]
 
-AUTH_USER_MODEL="backapp.CustomUser"
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware", 
     "django.middleware.security.SecurityMiddleware",

@@ -9,6 +9,7 @@ from agents.agent import agent
 from fastapi import Request as Req
 from fastapi import Depends
 from auth import get_current_user
+from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI()
 @app.get("/hello")
 async def hello():
@@ -62,3 +63,12 @@ Goals:
     result = agent(query)
     text = result.message["content"][0]["text"]
     return {"response": text}
+
+app.add_middleware(
+    CORSMiddleware, 
+    allow_origins= ["*"], 
+    allow_credentials= True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+app=app

@@ -12,7 +12,27 @@ export default function ChatPage() {
     await signOut();
     router.push("/");
   };
-
+  const agentResult = async() => {
+      try{
+        const session = await fetchAuthSession(); 
+        const token = session.tokens?.idToken?.toString();
+         const res = await fetch(
+           "http://localhost:8080/status", 
+           {
+              method: "GET", 
+              headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+              },
+           }
+         )
+         const data = await res.json();
+          console.log("Agent Result:", data);
+      }
+      catch(err){
+        console.log("Error fetching agent result:", err);
+      }
+  }
   const uploadVideo = async () => {
     if (!file) {
       alert("No file selected");
@@ -71,6 +91,12 @@ export default function ChatPage() {
             className="px-4 bg-purple-600 rounded hover:bg-purple-700"
           >
             Upload
+          </button>
+          <button
+            onClick={agentResult}
+            className="px-4 bg-purple-600 rounded hover:bg-purple-700"
+          >
+            Get instant Result
           </button>
         </div>
 

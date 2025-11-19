@@ -1,12 +1,13 @@
 from ninja import NinjaAPI
 from .auth import CustomAuth
-from .schema import HelloTestResponse, GetSignedUrl
+from .schema import HelloTestResponse, GetSignedUrl, ChatHistoryOut
 import uuid, boto3
 import os
 from dotenv import load_dotenv
 from google.cloud import pubsub_v1
 from datetime import datetime
 import json
+from typing import List
 api = NinjaAPI()
 load_dotenv()
 s3 = boto3.client(
@@ -52,6 +53,10 @@ def get_upload_url(request, payload: GetSignedUrl):
     print(f"Published message ID: {future.result()}")
     return {"upload_url": presigned_url, "file_key": key}
 
-@api.get("/chat-history", auth=CustomAuth())
+from .models import ChatHistory
+@api.get("/chat-history", response=List[ChatHistoryOut], auth=CustomAuth())
 def chat_history(request):
-    pass
+    user = request.auth
+    user_email = user['email']
+    ch = ChatHistory.objects.filter(user_email=user_email).order_by("-timestamp")[:50]
+    return ch

@@ -12,6 +12,27 @@ export default function ChatPage() {
     await signOut();
     router.push("/");
   };
+  const chatHistory = async() => {
+    try{
+       const session = await fetchAuthSession();
+       const token = session.tokens?.idToken?.toString();
+       const res = await fetch(
+        "http://localhost:8000/api/chat-history", 
+        {
+           method: "GET", 
+           headers: {
+              "Content-Type": "application/json", 
+              Authorization: `Bearer ${token}`
+           },
+        }
+       )
+       const data = await res.json();
+          console.log("History", data);
+    }
+    catch(err){
+      console.log(err);
+    }
+  }
   const agentResult = async() => {
       try{
         const session = await fetchAuthSession(); 
@@ -97,6 +118,12 @@ export default function ChatPage() {
             className="px-4 bg-purple-600 rounded hover:bg-purple-700"
           >
             Get instant Result
+          </button>
+          <button
+            onClick={chatHistory}
+            className="px-4 bg-purple-600 rounded hover:bg-purple-700"
+          >
+            Get chat history
           </button>
         </div>
 

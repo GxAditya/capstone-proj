@@ -51,3 +51,7 @@ def get_upload_url(request, payload: GetSignedUrl):
     future = publisher.publish(topic_path, data)
     print(f"Published message ID: {future.result()}")
     return {"upload_url": presigned_url, "file_key": key}
+
+@api.get("/chat-history", auth=CustomAuth())
+def chat_history(request):
+    pass

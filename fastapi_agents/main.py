@@ -10,6 +10,7 @@ from fastapi import Request as Req
 from fastapi import Depends
 from auth import get_current_user
 from fastapi.middleware.cors import CORSMiddleware
+from database import create_db_and_tables, ChatHistory, User, get_session, SessionDep
 app = FastAPI()
 @app.get("/hello")
 async def hello():
@@ -34,12 +35,13 @@ def pubsub_listener():
 
 @app.on_event("startup")
 def launch_subscriber():
+    create_db_and_tables()
     thread = threading.Thread(target=pubsub_listener, daemon=True)
     thread.start()
     print("🎉 Pub/Sub listener running in background thread!")
 
 @app.get("/status")
-async def check(user = Depends(get_current_user)):
+async def check(user = Depends(get_current_user), session: SessionDep= None):
     print("RAW:", repr(app.state.mess))
     payload = json.loads(app.state.mess)
     print("File key: "+ payload["file_key"])
@@ -62,6 +64,15 @@ Goals:
 """
     result = agent(query)
     text = result.message["content"][0]["text"]
+    new_history = ChatHistory(
+        user_email = user["email"], 
+        file_key = payload["file_key"], 
+        response = text
+    )
+    session.add(new_history)
+    session.commit()
+    session.refresh(new_history)
+    app.state.mess = None
     return {"response": text}
 
 app.add_middleware(

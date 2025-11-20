@@ -13,6 +13,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from database import create_db_and_tables, ChatHistory, User, get_session, SessionDep
 from redis import Redis
 import boto3
+import base64
+import tempfile
 import fitz
 load_dotenv()
 redis_client = Redis(
@@ -27,6 +29,15 @@ s3 = boto3.client(
     aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
     region_name=os.getenv("COGNITO_REGION")
 )
+def setup_gcp_credentials():
+    b64 = os.getenv("GCP_CREDENTIALS_BASE64")
+    if not b64:
+        raise Exception("Missing GCP credentials")
+    data = base64.b64decode(b64)
+    tmp = tempfile.NamedTemporaryFile(delete=False)
+    tmp.write(data)
+    tmp.close()
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = tmp.name 
 
 app = FastAPI()
 @app.get("/hello")
@@ -35,11 +46,6 @@ async def hello():
 app.state.mess = None
 RUNNING_IN_GCP = os.getenv("RUNNING_IN_GCP") == "1"
 def pubsub_listener():
-  if not RUNNING_IN_GCP:
-      credentials_path= os.getenv("GCP_CREDENTIALS_PATH")
-      os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = credentials_path
-  else:
-      print("Running in GCP environment, using default credentials.")
   subscriber = pubsub_v1.SubscriberClient()
   subscription_path=os.getenv("SUBSCRIBER_PATH")
   def callback(message: pubsub_v1.subscriber.message.Message):
@@ -55,6 +61,7 @@ def pubsub_listener():
 
 @app.on_event("startup")
 def launch_subscriber():
+    setup_gcp_credentials()
     create_db_and_tables()
     thread = threading.Thread(target=pubsub_listener, daemon=True)
     thread.start()

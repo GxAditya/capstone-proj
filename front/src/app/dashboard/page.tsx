@@ -35,7 +35,7 @@ export default function ChatPage() {
       const session = await fetchAuthSession();
       const token = session.tokens?.idToken?.toString();
 
-      const res = await fetch("http://127.0.0.1:8000/api/get-upload-url", {
+      const res = await fetch("https://capstone-django-777268942678.asia-south1.run.app/api/get-upload-url", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -76,7 +76,7 @@ export default function ChatPage() {
       const session = await fetchAuthSession();
       const token = session.tokens?.idToken?.toString();
 
-      const res = await fetch("http://localhost:8080/status", {
+      const res = await fetch("https://capstone-fastapi-777268942678.asia-south1.run.app/status", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -101,7 +101,7 @@ export default function ChatPage() {
       const session = await fetchAuthSession();
       const token = session.tokens?.idToken?.toString();
 
-      const res = await fetch("http://localhost:8000/api/chat-history", {
+      const res = await fetch("https://capstone-django-777268942678.asia-south1.run.app/api/chat-history", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

@@ -1,4 +1,4 @@
-from fastapi import FastAPI 
+from fastapi import FastAPI
 import os
 from dotenv import load_dotenv
 from google.cloud import pubsub_v1
@@ -13,52 +13,62 @@ from fastapi.middleware.cors import CORSMiddleware
 from database import create_db_and_tables, ChatHistory, User, get_session, SessionDep
 from redis import Redis
 import boto3
-import base64
-import tempfile
 import fitz
+
+# Load .env (Docker environment variables are loaded automatically)
 load_dotenv()
-def setup_gcp_credentials():
-    b64 = os.getenv("GCP_CREDENTIALS_BASE64")
-    if not b64:
-        raise Exception("Missing GCP credentials")
-    data = base64.b64decode(b64)
-    tmp = tempfile.NamedTemporaryFile(delete=False)
-    tmp.write(data)
-    tmp.close()
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = tmp.name 
-setup_gcp_credentials()
+# credentials_path="C:\\Users\\HP\\Downloads\\capstone-proj\\django_back\\backapp\\keys.json"
+# os.environ['GOOGLE_APPLICATION_CREDENTIALS']= credentials_path
+
+# -----------------------------------------
+# Redis + S3 Setup
+# -----------------------------------------
 redis_client = Redis(
     host=os.getenv("REDIS_URL"),
     port=int(os.getenv("REDIS_PORT")),
     password=os.getenv("REDIS_PASSWORD"),
     decode_responses=True
 )
+
 s3 = boto3.client(
-    's3', 
-    aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"), 
+    's3',
+    aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
     aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
     region_name=os.getenv("COGNITO_REGION")
 )
 
+# -----------------------------------------
+# FastAPI App
+# -----------------------------------------
 app = FastAPI()
+
 @app.get("/hello")
 async def hello():
     return {"message": "Hello, World!"}
+
 app.state.mess = None
-RUNNING_IN_GCP = os.getenv("RUNNING_IN_GCP") == "1"
+
+
+# -----------------------------------------
+# Pub/Sub Listener
+# -----------------------------------------
 def pubsub_listener():
-  subscriber = pubsub_v1.SubscriberClient()
-  subscription_path=os.getenv("SUBSCRIBER_PATH")
-  def callback(message: pubsub_v1.subscriber.message.Message):
-        app.state.mess = message.data.decode('utf-8')
+    subscriber = pubsub_v1.SubscriberClient()
+    subscription_path = os.getenv("SUBSCRIBER_PATH")
+
+    def callback(message: pubsub_v1.subscriber.message.Message):
+        app.state.mess = message.data.decode("utf-8")
         print(f"Received: {message.data.decode('utf-8')}")
         message.ack()
-  print(f"Pub/Sub: Listening on {subscription_path}...")
-  streaming_pull_feature = subscriber.subscribe(subscription_path, callback=callback)
-  try:
-      streaming_pull_feature.result()
-  except Exception as e:
-      print(f"Crashed: {e}")
+
+    print(f"Pub/Sub: Listening on {subscription_path}...")
+    streaming_pull_feature = subscriber.subscribe(subscription_path, callback=callback)
+
+    try:
+        streaming_pull_feature.result()
+    except Exception as e:
+        print(f"Crashed: {e}")
+
 
 @app.on_event("startup")
 def launch_subscriber():
@@ -67,30 +77,43 @@ def launch_subscriber():
     thread.start()
     print("🎉 Pub/Sub listener running in background thread!")
 
+
+# -----------------------------------------
+# Status Route
+# -----------------------------------------
 @app.get("/status")
-async def check(user = Depends(get_current_user), session: SessionDep= None):
+async def check(user=Depends(get_current_user), session: SessionDep=None):
     print("RAW:", repr(app.state.mess))
+
     payload = json.loads(app.state.mess)
-    print("File key: "+ payload["file_key"])
+    print("File key:", payload["file_key"])
+
     existing_user = session.get(User, user["email"])
     bucket = os.getenv("AWS_BUCKET_NAME")
     obj = s3.get_object(Bucket=bucket, Key=payload["file_key"])
-    content = obj['Body'].read()
+
+    content = obj["Body"].read()
     pdf = fitz.open(stream=content, filetype="pdf")
+
     pdf_text = ""
     for page in pdf:
         pdf_text += page.get_text()
+
     import hashlib
-    content_hash = hashlib.sha256(pdf_text.encode('utf-8')).hexdigest()
+    content_hash = hashlib.sha256(pdf_text.encode("utf-8")).hexdigest()
+
     cached = redis_client.get(content_hash)
     if cached:
         print("🚀 Cache HIT:", content_hash)
         app.state.mess = None
         return {"response": cached, "cache": True}
+
     print("❌ Cache MISS:", content_hash)
+
     if not existing_user:
         session.add(User(email=user["email"]))
         session.commit()
+
     query = f""" 
    You are a Legal Document Intelligence Agent. 
 Below is the FULL extracted text of a legal document.
@@ -108,25 +131,34 @@ Extracted document text:
 {pdf_text}
 ---------------------------
 """
+
     result = agent(query)
     text = result.message["content"][0]["text"]
+
     new_history = ChatHistory(
-        user_email = user["email"], 
-        file_key = payload["file_key"], 
-        response = text
+        user_email=user["email"],
+        file_key=payload["file_key"],
+        response=text
     )
+
     redis_client.set(content_hash, text, ex=60 * 60 * 24)
     session.add(new_history)
     session.commit()
     session.refresh(new_history)
+
     app.state.mess = None
     return {"response": text}
 
+
+# -----------------------------------------
+# CORS
+# -----------------------------------------
 app.add_middleware(
-    CORSMiddleware, 
-    allow_origins= ["*"], 
-    allow_credentials= True,
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-app=app
+
+app = app 

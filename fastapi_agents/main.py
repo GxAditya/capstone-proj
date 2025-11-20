@@ -17,6 +17,16 @@ import base64
 import tempfile
 import fitz
 load_dotenv()
+def setup_gcp_credentials():
+    b64 = os.getenv("GCP_CREDENTIALS_BASE64")
+    if not b64:
+        raise Exception("Missing GCP credentials")
+    data = base64.b64decode(b64)
+    tmp = tempfile.NamedTemporaryFile(delete=False)
+    tmp.write(data)
+    tmp.close()
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = tmp.name 
+setup_gcp_credentials()
 redis_client = Redis(
     host=os.getenv("REDIS_URL"),
     port=int(os.getenv("REDIS_PORT")),
@@ -29,15 +39,6 @@ s3 = boto3.client(
     aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
     region_name=os.getenv("COGNITO_REGION")
 )
-def setup_gcp_credentials():
-    b64 = os.getenv("GCP_CREDENTIALS_BASE64")
-    if not b64:
-        raise Exception("Missing GCP credentials")
-    data = base64.b64decode(b64)
-    tmp = tempfile.NamedTemporaryFile(delete=False)
-    tmp.write(data)
-    tmp.close()
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = tmp.name 
 
 app = FastAPI()
 @app.get("/hello")
@@ -61,7 +62,6 @@ def pubsub_listener():
 
 @app.on_event("startup")
 def launch_subscriber():
-    setup_gcp_credentials()
     create_db_and_tables()
     thread = threading.Thread(target=pubsub_listener, daemon=True)
     thread.start()

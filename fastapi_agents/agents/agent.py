@@ -109,5 +109,5 @@ def get_agent():
             fetch_india_act,
             fetch_india_section,
             fetch_constitution_article
-        ],
+        ]
     )

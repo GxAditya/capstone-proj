@@ -72,6 +72,8 @@ source venv/bin/activate
 3. OCR Fallback (via pytesseract) for extracting text from image based PDFs
 4. Migrating to LangChain/LangGraph from Strands framework
 5. Migrate to daphne server from Django's default WSGI server
+6. Adding Github Actions to automate deployments
+7. Adding Prometheus and Grafana Dashboards for better monitoring
 
 ## How to contribute
 ### 1. Fork the repository

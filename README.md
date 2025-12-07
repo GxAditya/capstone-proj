@@ -25,3 +25,33 @@ Legal Summarizer is a smart AI that takes your legal agreements, scoops out Arti
 1. Cloudflare workers migration (underway)
 2. Extending supported file types (underway)
 3. OCR Fallback (via pytesseract) for extracting text from image based PDFs
+
+## How to contribute
+### 1. Fork the repository
+Click the **Fork** button on the top-right of the GitHub page.
+### 2. Clone your fork locally
+```bash
+git clone https://github.com/your-username/capstone-proj.git
+cd capstone-proj
+```
+### 3.Create a new branch for your work
+```bash
+git checkout -b branch-name
+```
+### 4.Commit your changes
+```bash
+git add .
+git commit -m "describe your changes"
+```
+### 5.Push your branch
+```bash
+git push origin branch-name
+```
+### 6. Open a Pull Request
+Go to your fork on GitHub → Compare & Pull Request
+Provide:
+1. What you changed
+2. Why you changed it
+3. Screenshots/Testing video if applicable
+
+Submit the PR ✔️

@@ -63,7 +63,7 @@ def pubsub_listener():
 
 @app.on_event("startup")
 def launch_subscriber():
-    create_db_and_tables()
+    # create_db_and_tables()
     thread = threading.Thread(target=pubsub_listener, daemon=True)
     thread.start()
     print("🎉 Pub/Sub listener running in background thread!")

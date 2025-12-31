@@ -4,9 +4,11 @@ on:
   push:
     paths:
       - "django_back/**"
+      - ".github/workflows/django-ci.yml"
   pull_request:
     paths:
       - "django_back/**"
+      - ".github/workflows/django-ci.yml"
 
 jobs:
   django-ci:

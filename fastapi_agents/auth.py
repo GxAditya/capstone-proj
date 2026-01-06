@@ -15,30 +15,52 @@ JWKS_URL = f"https://cognito-idp.{COGNITO_REGION}.amazonaws.com/{USER_POOL_ID}/.
 JWKS = requests.get(JWKS_URL).json()["keys"]
 
 def validate_token(token: str):
-    headers = jwt.get_unverified_headers(token)
-    kid = headers["kid"]
-    jwt_key = next((key for key in JWKS if key["kid"] == kid), None)
-    if jwt_key is None:
-        raise Exception("Public key not found in JWKS")
-    unverified = jwt.get_unverified_claims(token)
-    if unverified["exp"] < datetime.utcnow().timestamp():
-        raise Exception("Token is expired")
-    aud = unverified.get("aud") or unverified.get("client_id")
-    if aud != USER_POOL_CLIENT_ID:
-        raise Exception(f"Invalid audience: expected {USER_POOL_CLIENT_ID}, got {aud}")
-    message, encoded_signature = token.rsplit(".", 1)
-    decoded_signature = base64url_decode(encoded_signature.encode())
-    public_key = jwk.construct(jwt_key)
-    if not public_key.verify(message.encode(), decoded_signature):
-        raise Exception("Signature verification failed")
-    return unverified
+    """
+    Validate JWT token from AWS Cognito.
+
+    Args:
+        token: JWT token string
+
+    Returns:
+        dict: Decoded token claims
+
+    Raises:
+        ValueError: If token validation fails
+    """
+    try:
+        headers = jwt.get_unverified_headers(token)
+        kid = headers.get("kid")
+        if not kid:
+            raise ValueError("Token missing 'kid' header")
+
+        jwt_key = next((key for key in JWKS if key["kid"] == kid), None)
+        if jwt_key is None:
+            raise ValueError("Public key not found in JWKS")
+
+        unverified = jwt.get_unverified_claims(token)
+        if unverified.get("exp", 0) < datetime.utcnow().timestamp():
+            raise ValueError("Token is expired")
+
+        aud = unverified.get("aud") or unverified.get("client_id")
+        if aud != USER_POOL_CLIENT_ID:
+            raise ValueError(f"Invalid audience: expected {USER_POOL_CLIENT_ID}, got {aud}")
+
+        message, encoded_signature = token.rsplit(".", 1)
+        decoded_signature = base64url_decode(encoded_signature.encode())
+        public_key = jwk.construct(jwt_key)
+        if not public_key.verify(message.encode(), decoded_signature):
+            raise ValueError("Signature verification failed")
+
+        return unverified
+    except Exception as e:
+        raise ValueError(f"Token validation failed: {str(e)}")
 
 class CustomAuth:
     def authenticate(self, request, token):
-        try: 
+        try:
             claims = validate_token(token)
             return claims
-        except Exception as e:
+        except ValueError:
             return None
 
 auth_scheme = HTTPBearer()

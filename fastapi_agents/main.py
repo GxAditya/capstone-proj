@@ -1,4 +1,5 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Request, status
+from fastapi.responses import JSONResponse
 import os
 from dotenv import load_dotenv
 from google.cloud import pubsub_v1
@@ -13,6 +14,9 @@ from redis import Redis
 import boto3
 import fitz
 import hashlib
+from schemas import StatusRequest, StatusResponse, ErrorResponse, HealthResponse, ValidationErrorResponse
+from pydantic import ValidationError
+from typing import Union
 #COMMENTS TO BE ADDED LATER
 load_dotenv()
 redis_client = Redis(
@@ -30,8 +34,49 @@ s3 = boto3.client(
 )
 
 
-app = FastAPI()
+app = FastAPI(
+    title="Legal Document Analysis API",
+    description="AI-powered legal document analysis service",
+    version="1.0.0"
+)
 app.state.mess = None
+
+# Exception handlers
+@app.exception_handler(ValidationError)
+async def validation_exception_handler(request: Request, exc: ValidationError):
+    errors = {}
+    for error in exc.errors():
+        field_name = ".".join(str(loc) for loc in error["loc"]) if error["loc"] else "unknown"
+        errors[field_name] = error["msg"]
+    
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content=ValidationErrorResponse(
+            errors=errors,
+            code="VALIDATION_ERROR"
+        ).model_dump()
+    )
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "error": exc.detail,
+            "code": "HTTP_EXCEPTION"
+        }
+    )
+
+@app.exception_handler(Exception)
+async def general_exception_handler(request: Request, exc: Exception):
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={
+            "error": "Internal server error",
+            "code": "INTERNAL_ERROR",
+            "details": str(exc) if os.getenv("DEBUG", "false").lower() == "true" else None
+        }
+    )
 
 def pubsub_listener():
     subscriber = pubsub_v1.SubscriberClient()
@@ -128,64 +173,212 @@ Chunk Summaries:
     return res.message["content"][0]["text"].strip()
 
 
-@app.get("/status")
-async def check(user=Depends(get_current_user), session: SessionDep = None):
+@app.get("/status", response_model=StatusResponse)
+async def check(user=Depends(get_current_user), session: SessionDep = None) -> StatusResponse:
+    """
+    Process uploaded PDF document and return legal analysis.
 
-    print("RAW:", repr(app.state.mess))
-
-    payload = json.loads(app.state.mess)
-    file_key = payload["file_key"]
-    bucket = os.getenv("AWS_BUCKET_NAME")
-    obj = s3.get_object(Bucket=bucket, Key=file_key)
-    content = obj["Body"].read()
+    - **Returns**: Legal document analysis or error response
+    - **Requires**: Valid authentication token
+    """
     try:
-        pdf = fitz.open(stream=content, filetype="pdf")
-    except Exception as e:
-        return {"error": f"Failed to open PDF: {str(e)}"}
-    pdf_text = extract_pdf_text(pdf)
-    if len(pdf_text.strip()) < 50:
-        return {"error": "The uploaded document contains no readable text."}
-    content_hash = hashlib.sha256(pdf_text.encode("utf-8")).hexdigest()
-    cached = redis_client.get(content_hash)
+        # Validate PubSub message exists
+        if app.state.mess is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="No document processing request found"
+            )
 
-    if cached:
-        print("🚀 Cache HIT:", content_hash)
+        print("RAW:", repr(app.state.mess))
+
+        # Parse and validate the PubSub message
+        try:
+            payload = json.loads(app.state.mess)
+        except json.JSONDecodeError as e:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid JSON in PubSub message: {str(e)}"
+            )
+
+        # Validate the payload structure
+        try:
+            status_request = StatusRequest(**payload)
+            file_key = status_request.file_key
+        except ValidationError as e:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=f"Invalid request data: {str(e)}"
+            )
+
+        bucket = os.getenv("AWS_BUCKET_NAME")
+        if not bucket:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="AWS bucket configuration missing"
+            )
+
+        # Download file from S3
+        try:
+            obj = s3.get_object(Bucket=bucket, Key=file_key)
+            content = obj["Body"].read()
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Failed to retrieve file from S3: {str(e)}"
+            )
+
+        # Validate file size (max 50MB)
+        max_size = 50 * 1024 * 1024  # 50MB
+        if len(content) > max_size:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail="File size exceeds maximum limit of 50MB"
+            )
+
+        # Open and validate PDF
+        try:
+            pdf = fitz.open(stream=content, filetype="pdf")
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Failed to open PDF: {str(e)}"
+            )
+
+        # Extract text from PDF
+        try:
+            pdf_text = extract_pdf_text(pdf)
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to extract text from PDF: {str(e)}"
+            )
+
+        # Validate extracted text
+        if not pdf_text or len(pdf_text.strip()) < 50:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="The uploaded document contains insufficient readable text (minimum 50 characters required)"
+            )
+
+        # Check cache
+        content_hash = hashlib.sha256(pdf_text.encode("utf-8")).hexdigest()
+        cached = redis_client.get(content_hash)
+        if cached:
+            print("🚀 Cache HIT:", content_hash)
+            app.state.mess = None
+            return StatusResponse(response=cached, cache=True)
+
+        print("❌ Cache MISS:", content_hash)
+
+        # Ensure user exists in database
+        try:
+            existing_user = session.get(User, user["email"])
+            if not existing_user:
+                session.add(User(email=user["email"]))
+                session.commit()
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Database error: {str(e)}"
+            )
+        print("📌 Splitting PDF into chunks...")
+        try:
+            chunks = chunk_text(pdf_text)
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to process document chunks: {str(e)}"
+            )
+
+        if not chunks:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Document could not be split into processable chunks"
+            )
+
+        print(f"📄 Total Chunks: {len(chunks)}")
+
+        # Process chunks
+        chunk_summaries = []
+        for index, chunk in enumerate(chunks):
+            print(f"🔹 Summarizing Chunk {index + 1}/{len(chunks)}...")
+            try:
+                summary = summarize_chunk(chunk)
+                if not summary or len(summary.strip()) < 10:
+                    print(f"⚠️  Warning: Chunk {index + 1} produced insufficient summary")
+                    continue
+                chunk_summaries.append(summary)
+            except Exception as e:
+                print(f"⚠️  Warning: Failed to summarize chunk {index + 1}: {str(e)}")
+                continue
+
+        if not chunk_summaries:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Failed to generate summaries for any document chunks"
+            )
+
+        print("🔍 Running Final Legal Analysis...")
+        try:
+            final_output = final_legal_analysis(chunk_summaries)
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to perform legal analysis: {str(e)}"
+            )
+
+        if not final_output or len(final_output.strip()) < 50:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Legal analysis produced insufficient output"
+            )
+
+        # Cache the result
+        try:
+            redis_client.set(content_hash, final_output, ex=60 * 60 * 24)  # 24 hours
+        except Exception as e:
+            print(f"⚠️  Warning: Failed to cache result: {str(e)}")
+
+        # Save to database
+        try:
+            new_history = ChatHistory(
+                user_email=user["email"],
+                file_key=file_key,
+                response=final_output
+            )
+            session.add(new_history)
+            session.commit()
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to save chat history: {str(e)}"
+            )
+
+        # Reset message
         app.state.mess = None
-        return {"response": cached, "cache": True}
 
-    print("❌ Cache MISS:", content_hash)
+        return StatusResponse(response=final_output)
 
-    existing_user = session.get(User, user["email"])
-    if not existing_user:
-        session.add(User(email=user["email"]))
-        session.commit()
-    print("📌 Splitting PDF into chunks...")
-    chunks = chunk_text(pdf_text)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Unexpected error: {str(e)}"
+        )
 
-    print(f"📄 Total Chunks: {len(chunks)}")
 
-    chunk_summaries = []
-    for index, chunk in enumerate(chunks):
-        print(f"🔹 Summarizing Chunk {index + 1}/{len(chunks)}...")
-        summary = summarize_chunk(chunk)
-        chunk_summaries.append(summary)
+@app.get("/health", response_model=HealthResponse)
+async def health_check():
+    """
+    Health check endpoint to verify service status.
 
-    print("🔍 Running Final Legal Analysis...")
-    final_output = final_legal_analysis(chunk_summaries)
-
-    redis_client.set(content_hash, final_output, ex=60 * 60 * 24)
-    new_history = ChatHistory(
-        user_email=user["email"],
-        file_key=file_key,
-        response=final_output
+    - **Returns**: Service health information
+    """
+    return HealthResponse(
+        status="healthy",
+        version="1.0.0"
     )
-    session.add(new_history)
-    session.commit()
-
-    # Reset message
-    app.state.mess = None
-
-    return {"response": final_output}
 
 app.add_middleware(
     CORSMiddleware,

@@ -132,7 +132,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mail, Lock, Loader2, Sparkles, X, Shield, CheckCircle2, ArrowRight } from "lucide-react";
+import { Mail, Lock, Loader2, Sparkles, X, Shield, CheckCircle2, ArrowRight, Eye, EyeOff } from "lucide-react";
 import { signUp, confirmSignUp } from "aws-amplify/auth";
 import { useRouter } from "next/navigation";
 
@@ -145,6 +145,7 @@ export default function SignupPage() {
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [focusedInput, setFocusedInput] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSignup = async () => {
     try {
@@ -475,15 +476,28 @@ export default function SignupPage() {
                                   focusedInput === "password" ? "text-purple-400" : "text-slate-500"
                                 }`} />
                                 <input
-                                  type="password"
+                                  type={showPassword ? "text" : "password"}
                                   placeholder="••••••••"
-                                  className="w-full pl-12 pr-4 py-3 bg-slate-800/50 text-white rounded-xl border border-slate-700 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all placeholder:text-slate-500"
+                                  className="w-full pl-12 pr-12 py-3 bg-slate-800/50 text-white rounded-xl border border-slate-700 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all placeholder:text-slate-500"
                                   onChange={(e) => setPassword(e.target.value)}
                                   onFocus={() => setFocusedInput("password")}
                                   onBlur={() => setFocusedInput("")}
                                   onKeyPress={handleKeyPress}
                                   value={password}
                                 />
+                                <button
+                                  type="button"
+                                  aria-label={showPassword ? "Hide password" : "Show password"}
+                                  onClick={() => setShowPassword((v) => !v)}
+                                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-purple-400 focus:outline-none"
+                                  tabIndex={-1}
+                                >
+                                  {showPassword ? (
+                                    <EyeOff className="h-5 w-5" />
+                                  ) : (
+                                    <Eye className="h-5 w-5" />
+                                  )}
+                                </button>
                               </div>
                               <p className="text-xs text-slate-500 mt-2">
                                 Must be at least 8 characters

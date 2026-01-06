@@ -88,6 +88,42 @@ npm run dev
 
 ---
 
+## Environment Variables
+
+This project requires specific environment variables for local development.  
+Contributors should create a `.env` file in the root of the project and use the following as a reference:
+
+
+```
+### Django Ninja Backend
+
+NEON_PASSWORD=your_neon_password_here
+NEON_HOST=your_neon_host_here
+COGNITO_REGION=your_cognito_region_here
+AWS_ACCESS_KEY_ID=your_aws_access_key_id_here
+AWS_SECRET_ACCESS_KEY=your_aws_secret_access_key_here
+S3_BUCKET_NAME=your_s3_bucket_name_here
+USER_POOL_ID=your_user_pool_id_here
+USER_CLIENT_ID=your_user_client_id_here
+
+# FastAPI Backend
+
+REDIS_URL=your_redis_url_here
+REDIS_PORT=your_redis_port_here
+REDIS_PASSWORD=your_redis_password_here
+SUBSCRIBER_PATH=your_subscriber_path_here
+
+```
+
+**Notes:**
+
+- Replace placeholder values (`your_…_here`) with your actual credentials locally.  
+- Do **not** commit your real `.env` file to the repository.  
+- Use this as a sample configuration reference for contributors.
+
+
+
+
 ## 📚 Documentation
 
 - **[CONTRIBUTING.md](CONTRIBUTING.md)** - How to contribute to this project

@@ -146,6 +146,16 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [focusedInput, setFocusedInput] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const passwordRules = {
+  length: password.length >= 8,
+  uppercase: /[A-Z]/.test(password),
+  lowercase: /[a-z]/.test(password),
+  number: /[0-9]/.test(password),
+  special: /[^A-Za-z0-9]/.test(password),
+};
+
+const isPasswordValid = Object.values(passwordRules).every(Boolean);
+
 
   const handleSignup = async () => {
     try {
@@ -499,22 +509,38 @@ export default function SignupPage() {
                                   )}
                                 </button>
                               </div>
-                              <p className="text-xs text-slate-500 mt-2">
-                                Must be at least 8 characters
-                              </p>
-                            </div>
+
+                              <div className="mt-3 space-y-1 text-xs">
+                                <p className={passwordRules.length ? "text-pink-400" : "text-slate-500"}>
+                                  • At least 8 characters
+                                </p>
+                                  <p className={passwordRules.uppercase ? "text-pink-400" : "text-slate-500"}>
+                                  • One uppercase letter
+                                  </p>
+                                 <p className={passwordRules.lowercase ? "text-pink-400" : "text-slate-500"}>
+                                 • One lowercase letter
+                                  </p>
+                                  <p className={passwordRules.number ? "text-pink-400" : "text-slate-500"}>
+                                • One number
+                                  </p>
+                                  <p className={passwordRules.special ? "text-pink-400" : "text-slate-500"}>
+                                 • One special character
+                                  </p>
+                                </div>
+                                </div>
+     
 
                             {/* Signup button */}
                             <motion.button
                               onClick={handleSignup}
-                              disabled={loading || !email || !password}
+                              disabled={loading || !email || !isPasswordValid}
                               className={`w-full py-4 rounded-xl font-semibold text-white transition-all duration-300 relative overflow-hidden ${
-                                loading || !email || !password
+                                loading || !email || !isPasswordValid
                                   ? "bg-slate-700 cursor-not-allowed"
                                   : "bg-gradient-to-r from-purple-600 to-pink-600 hover:shadow-lg hover:shadow-purple-500/30"
                               }`}
-                              whileHover={!loading && email && password ? { scale: 1.02, y: -2 } : {}}
-                              whileTap={!loading && email && password ? { scale: 0.98 } : {}}
+                              whileHover={!loading && email && isPasswordValid ? { scale: 1.02, y: -2 } : {}}
+                              whileTap={!loading && email && isPasswordValid ? { scale: 0.98 } : {}}
                             >
                               {loading && (
                                 <motion.div

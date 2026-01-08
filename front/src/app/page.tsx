@@ -616,11 +616,11 @@ export default function SignupPage() {
 >
   <p className="text-xs text-slate-500">
     By signing up, you agree to our{" "}
-    <a href="#" className="text-purple-400 hover:underline">
+    <a href="/terms" className="text-purple-400 hover:underline">
       Terms
     </a>{" "}
     and{" "}
-    <a href="#" className="text-purple-400 hover:underline">
+    <a href="/privacy" className="text-purple-400 hover:underline">
       Privacy Policy
     </a>.
   </p>

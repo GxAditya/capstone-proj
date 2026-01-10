@@ -311,10 +311,21 @@ export default function LoginPage() {
                         )}
                       </motion.button>
 
-                      <div className="mt-6 text-center">
-                        <a href="#" className="text-sm text-slate-400 hover:text-blue-400">
+                      <div className="mt-6 text-center space-y-3">
+                        <a href="#" className="text-sm text-slate-400 hover:text-blue-400 block">
                           Forgot your password?
                         </a>
+                        
+                        <p className="text-xs text-slate-500">
+                          By signing in, you agree to our{" "}
+                          <a href="/terms" className="text-blue-400 hover:underline">
+                            Terms
+                          </a>{" "}
+                          and{" "}
+                          <a href="/privacy" className="text-blue-400 hover:underline">
+                            Privacy Policy
+                          </a>.
+                        </p>
                       </div>
                     </div>
                   </motion.div>
